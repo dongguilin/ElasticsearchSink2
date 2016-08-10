@@ -29,6 +29,14 @@ public class ElasticSearchClientFactory {
     public static final String TransportClient = "transport";
     public static final String RestClient = "rest";
 
+    private String shieldUser = "";
+    private String shieldPwd = "";
+
+    public ElasticSearchClientFactory(String shieldUser, String shieldPwd) {
+        this.shieldUser = shieldUser;
+        this.shieldPwd = shieldPwd;
+    }
+
     /**
      * @param clientType  String representation of client type
      * @param hostNames   Array of strings that represents hosntames with ports (hostname:port)
@@ -40,9 +48,9 @@ public class ElasticSearchClientFactory {
                                          String clusterName, ElasticSearchEventSerializer serializer,
                                          ElasticSearchIndexRequestBuilderFactory indexBuilder) throws NoSuchClientTypeException {
         if (clientType.equalsIgnoreCase(TransportClient) && serializer != null) {
-            return new ElasticSearchTransportClient(hostNames, clusterName, serializer);
+            return new ElasticSearchTransportClient(hostNames, clusterName, serializer, this.shieldUser, this.shieldPwd);
         } else if (clientType.equalsIgnoreCase(TransportClient) && indexBuilder != null) {
-            return new ElasticSearchTransportClient(hostNames, clusterName, indexBuilder);
+            return new ElasticSearchTransportClient(hostNames, clusterName, indexBuilder, this.shieldUser, this.shieldPwd);
         } else if (clientType.equalsIgnoreCase(RestClient) && serializer != null) {
             return new ElasticSearchRestClient(hostNames, serializer);
         }

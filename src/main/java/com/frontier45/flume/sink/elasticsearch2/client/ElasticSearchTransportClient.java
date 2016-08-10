@@ -35,6 +35,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeBuilder;
+import org.elasticsearch.shield.ShieldPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,17 +63,17 @@ public class ElasticSearchTransportClient implements ElasticSearchClient {
      * @param serializer
      */
     public ElasticSearchTransportClient(String[] hostNames, String clusterName,
-                                        ElasticSearchEventSerializer serializer) {
+                                        ElasticSearchEventSerializer serializer, String shieldUser, String shieldPwd) {
         configureHostnames(hostNames);
         this.serializer = serializer;
-        openClient(clusterName);
+        openClient(clusterName, shieldUser, shieldPwd);
     }
 
     public ElasticSearchTransportClient(String[] hostNames, String clusterName,
-                                        ElasticSearchIndexRequestBuilderFactory indexBuilder) {
+                                        ElasticSearchIndexRequestBuilderFactory indexBuilder, String shieldUser, String shieldPwd) {
         configureHostnames(hostNames);
         this.indexRequestBuilderFactory = indexBuilder;
-        openClient(clusterName);
+        openClient(clusterName, shieldUser, shieldPwd);
     }
 
     /**
@@ -188,14 +189,19 @@ public class ElasticSearchTransportClient implements ElasticSearchClient {
      * Open client to elaticsearch cluster
      *
      * @param clusterName
+     * @param shieldUser
+     * @param shieldPwd
      */
-    private void openClient(String clusterName) {
+    private void openClient(String clusterName, String shieldUser, String shieldPwd) {
         logger.info("Using ElasticSearch hostnames: {} ",
                 Arrays.toString(serverAddresses));
         Settings settings = Settings.settingsBuilder()
-                .put("cluster.name", clusterName).build();
-
-        TransportClient transportClient = TransportClient.builder().settings(settings).build();
+                .put("cluster.name", clusterName)
+                .put("shield.user", shieldUser + ":" + shieldPwd)
+                .build();
+        TransportClient transportClient = TransportClient.builder()
+                .addPlugin(ShieldPlugin.class)
+                .settings(settings).build();
         for (InetSocketTransportAddress host : serverAddresses) {
             transportClient.addTransportAddress(host);
         }

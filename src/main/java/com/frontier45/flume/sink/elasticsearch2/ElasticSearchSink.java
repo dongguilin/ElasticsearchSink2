@@ -85,6 +85,9 @@ public class ElasticSearchSink extends AbstractSink implements Configurable {
       Pattern.CASE_INSENSITIVE);
   private Matcher matcher = pattern.matcher("");
 
+  private String shieldUser = "";
+  private String shieldPwd = "";
+
   private String[] serverAddresses = null;
 
   private ElasticSearchClient client = null;
@@ -226,6 +229,15 @@ public class ElasticSearchSink extends AbstractSink implements Configurable {
           && serverAddresses.length > 0, MISSING_PARAM + ElasticSearchSinkConstants.HOSTNAMES);
     }
 
+    if (StringUtils.isNotBlank(context.getString(ElasticSearchSinkConstants.SHIELD_USER))) {
+      this.shieldUser = context.getString(ElasticSearchSinkConstants.SHIELD_USER);
+    }
+    if (StringUtils.isNotBlank(context.getString(ElasticSearchSinkConstants.SHIELD_PWD))) {
+      this.shieldPwd = context.getString(ElasticSearchSinkConstants.SHIELD_PWD);
+    }
+
+    logger.info(this.shieldUser+","+this.shieldPwd);
+
     if (StringUtils.isNotBlank(context.getString(ElasticSearchSinkConstants.INDEX_NAME))) {
       this.indexName = context.getString(ElasticSearchSinkConstants.INDEX_NAME);
     }
@@ -327,7 +339,7 @@ public class ElasticSearchSink extends AbstractSink implements Configurable {
 
   @Override
   public void start() {
-    ElasticSearchClientFactory clientFactory = new ElasticSearchClientFactory();
+    ElasticSearchClientFactory clientFactory = new ElasticSearchClientFactory(this.shieldUser, this.shieldPwd);
 
     logger.info("ElasticSearch sink {} started");
     sinkCounter.start();
